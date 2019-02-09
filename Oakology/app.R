@@ -1,50 +1,62 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+#Oakology Shiny App
+# Find out more about building applications with Shiny here: http://shiny.rstudio.com/
 
+
+# load the shiny package
 library(shiny)
+library(shinythemes)
 
-# Define UI for application that draws a histogram
-ui <- fluidPage(
-   
-   # Application title
-   titlePanel("Old Faithful Geyser Data"),
-   
-   # Sidebar with a slider input for number of bins 
-   sidebarLayout(
-      sidebarPanel(
-         sliderInput("bins",
-                     "Number of bins:",
-                     min = 1,
-                     max = 50,
-                     value = 30)
-      ),
-      
-      # Show a plot of the generated distribution
-      mainPanel(
-         plotOutput("distPlot")
-      )
-   )
+#load other packages
+library(raster)
+
+ras<-raster("data/sdm/scr/nofog/historic.tif")
+
+ui<-fluidPage(theme = shinytheme("lumen"),
+              titlePanel("Oakology"),
+              navbarPage("NavBar",
+                         tabPanel("Summary", "Put in summary info... Island oak (Quercus tomentella) is a 
+                                  rare oak species that is endemic to six islands in the California Island 
+                                  Archipelago. It is listed as endandered by the IUCN..."),
+                         tabPanel("Example",
+                                  sidebarPanel(
+                                    fileInput("file", "File input:"),
+                                    textInput("txt", "Text input:", "general"),
+                                    sliderInput("slider", "Slider input:", 0, 100, 30),
+                                    tags$h5("Deafult actionButton:"),
+                                    actionButton("action", "Search"),
+                                    
+                                    tags$h5("actionButton with CSS class:"),
+                                    actionButton("action2", "Action button", class = "btn-primary")
+                                  ),
+                                  mainPanel(
+                                    tabsetPanel(
+                                      tabPanel("Tab 1",
+                                               h4("Table"),
+                                               tableOutput("table"),
+                                               h4("Verbatim text output"),
+                                               verbatimTextOutput("txtout"),
+                                               h1("Header 1"),
+                                               h2("Header 2"),
+                                               h3("Header 3"),
+                                               h4("Header 4"),
+                                               h5("Header 5")
+                                      ),
+                                      tabPanel("Tab 2", "This panel is intentionally left blank"),
+                                      tabPanel("Tab 3", "This panel is intentionally left blank")
+                                    )
+                                  )
+                         ),
+                         tabPanel("Islands", "This panel is intentionally left blank"),
+                         tabPanel("SDM", "This panel is intentionally left blank")
+              )
 )
 
-# Define server logic required to draw a histogram
+# Define server logic ----
 server <- function(input, output) {
-   
-   output$distPlot <- renderPlot({
-      # generate bins based on input$bins from ui.R
-      x    <- faithful[, 2] 
-      bins <- seq(min(x), max(x), length.out = input$bins + 1)
-      
-      # draw the histogram with the specified number of bins
-      hist(x, breaks = bins, col = 'darkgray', border = 'white')
-   })
+  
 }
 
-# Run the application 
+# Run the app ----
 shinyApp(ui = ui, server = server)
+
 
