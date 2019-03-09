@@ -8,8 +8,9 @@
 
 # load the shiny package
 library(shiny)
-library(shinythemes) #perhaps need to install package while running too?
+library(shinythemes)
 library(raster)
+library(rgdal)
 library(leaflet)
 library(tidyverse)
 library(sf)
@@ -17,8 +18,6 @@ library(RColorBrewer)
 library(shinyWidgets)
 library(colorspace)
 library(kableExtra)
-
-#setwd("G:/data/GitHub/244_SMLW/Oakology")#Set wd just for running here, the app wd includes Oakology
 
 ui<-fluidPage(theme = shinytheme("readable"),
               titlePanel("Climate Change Vulnerability Assessment of Island Oaks"),
@@ -265,9 +264,52 @@ ui<-fluidPage(theme = shinytheme("readable"),
                     
       
                        )),
+              tabPanel("Oaks",
+                       sidebarLayout(
+                         sidebarPanel(width=3,
+                           selectInput("points_colors", "Choose Color:",
+                                                  c("Chartreuse" = "#ADFF2F",
+                                                    "Vermillion" = "#FF4500",
+                                                    "Periwinkle" = "#B0C4DE",
+                                                    "Pewter" = "#708090",
+                                                    "Celadon" = "#48D1CC",
+                                                    "Indigo" = "#4B0082",
+                                                    "Saffron" = "#FF7F50",
+                                                    "Fuchsia" = "#FF00FF",
+                                                    "Lavender" = "#E6E6FA",
+                                                    "Viridian" = "#2E8B57",
+                                                    "Cerulean" = "#1E90FF",
+                                                    "Salmon" = "#FA8072",
+                                                    "Atomic Tangerine" = "#FF6347")),
+                                      p("Each point symbolizes either individual trees or a grove of island oak. Data Source: The National Parks Service and Laura Kindsvater.")
+                         ),
+                         mainPanel(
+                           
+                           tabsetPanel(
+                             tabPanel("Santa Cruz",
+                                      leafletOutput("SCRpoints", width=800, height=400),
+                                      p("Notice how the oaks in Santa Cruz are concentrated on the northern side of the island. 
+                                        In total, there are 271 total oak points on Santa Cruz.")),
+                             
+                             tabPanel("Santa Rosa",
+                                      sidebarPanel(
+                                        radioButtons("age", "Choose Age Group:",
+                                                     c("Seedlings" = "seed",
+                                                       "Adults" = "adult")),
+                                        width = 5
+                                      ),
+                                      leafletOutput("SRIpoints", width=800, height=400),
+                                      p("Notice how the oaks in Santa Rosa are found mainly in the central valley and away from the coast. 
+                                        In total, there is a total of 1001 oak points on Santa Rosa. Out of these points, 202 are seedlings and 90 are adults. 
+                                        Selected color highlights either known seedlings/saplings or known adults, depending on age group option selected.")
+                                      )
+                           )
+                         )
+                       )
+              ), #End of Oak Points
               tabPanel("Islands",
                        fluidRow(
-                         column(8, offset=2,
+                         column(8, offset=3,
                                 p("The Islands tab allows users to select between viewing digital elevation models
                                   or vegetation class layers for Santa Cruz and Santa Rosa Islands. The layers may
                                   take a second to load as they are relatively detailed and fine resolution. More information 
@@ -275,22 +317,93 @@ ui<-fluidPage(theme = shinytheme("readable"),
                        ),
                        br(),
                        fluidRow(
-                         column(2,selectInput("islandvar", "Choose an Island Variable", c("DEM", "Vegetation"))),
+                         sidebarPanel(width=3,
+                           selectInput("islandvar", "Choose an Island Variable", c("DEM", "Vegetation"))
+                           ),
                          column(4,leafletOutput("islandmap", width=1200, height=650))
                        ),
                        br(),
                        br()
                        ),
+              tabPanel("Climate", 
+                       
+                       sidebarLayout(
+                         sidebarPanel(width=3,
+                           selectInput("climate_variable", "Choose an Environmental Variable:",
+                                       choices = c("Climate Water Deficit", 
+                                                   "Precipitation", 
+                                                   "Minimum Winter Temperature", 
+                                                   "Maximum Summer Temperature")),
+                           selectInput("climate_scenario", "Choose a Climate Scenario:",
+                                       choices = c("MPI 4.5 (Warm, Wet)", 
+                                                   "CCSM4 (Hot, Wet)", 
+                                                   "MIROC 4.5 (Warm,Dry)", 
+                                                   "MIROC 8.5 (Hot, Dry)")),
+                           # Input: Custom 30 yr periods format with basic animation
+                           sliderTextInput("climate_time","Time Periods", 
+                                           choices = c("2010-2039", 
+                                                       "2040-2069", 
+                                                       "2070-2099"),
+                                           animate = TRUE),
+                           selectInput("raster_color_climate", "Choose Color Theme:",
+                                       c("Rainbow" = "Spectral",
+                                         "Yellow, Green, Blue" = "YlGnBu",
+                                         "Yellow, Green" = "YlGn",
+                                         "Purple, Red" = "PuRd",
+                                         "Yellow, Orange, Red" = "YlOrRd")),
+                           p("Data Source: Flint, L.E. and Flint, A.L., 2014, California Basin Characterization Model: A Dataset of Historical and Future Hydrologic Response to Climate Change, (ver. 1.1, May 2017): U.S. Geological Survey Data Release, https://doi.org/10.5066/F76T0JPB.")
+                         ),
+                         
+                         mainPanel(
+                           tabsetPanel(
+                             tabPanel("Santa Cruz",
+                                      h3("Historic Climate"),
+                                      leafletOutput("scrHC", width=800, height=400),
+                                       h3("Projected Climate"),
+                                       leafletOutput("SCRclimatemap", width=800, height=400)),
+                             tabPanel("Santa Rosa",
+                                      h3("Historic Climate"),
+                                      leafletOutput("sriHC", width=800, height=400),
+                                      h3("Projected Climate"),
+                                      leafletOutput("SRIclimatemap", width=800, height=400))
+                           )),
+                         position = c("left", "right"),
+                         fluid = FALSE
+                       )
+              ), #end climate tab
+              tabPanel("Fog",
+                       # Select box with options for fog scenarios
+                       sidebarLayout(
+                         sidebarPanel(width=3,
+                           selectInput("fogscen", "Fog Scenarios", 
+                                       choices = c("Constant", "Increase", "Decrease", "Elevation Threshold")),
+                           # Input: Custom 30 yr periods format with basic animation
+                           sliderTextInput("timeperiods","Time Periods" , 
+                                           choices = c("1981-2010", "2010-2039", "2040-2069", "2070-2099"),
+                                           animate = TRUE),
+                           p("Data Source: Rastogi et al., 2016.")
+                         ),
+                         
+                         # Show maps of SRI and SCR with the chosen fog scenario with seperate tabs for each island
+                         mainPanel(
+                           tabsetPanel(
+                             tabPanel("Santa Cruz",
+                                      leafletOutput("scrfogmap", width=800, height=400)),
+                             tabPanel("Santa Rosa",
+                                      leafletOutput("srifogmap", width=800, height=400))
+                           )
+                         )
+                       )),
               tabPanel("SDM",
                        fluidRow(
-                         column(5, offset=2,
+                         column(5, offset=3,
                                 p("The SDM tab provides our species distribution model (SDM) results for the island oak. 
                          Before exploring the results shown in this tab, we highly recommend reading the tab summary
                          page under project summary as well as the methodology tab."))
                        ),
                        br(),
                        fluidRow(
-                         column(2,
+                         sidebarPanel(width=3,
                                 h4("Historic"),
                                 selectInput("histsdmcolor", "Choose a Color Palette", c("Spectral","Spectral2" ,"Viridis", "Magma")),
                                 selectInput("histscenario", "Choose a Scenario", c("No Fog",
@@ -300,13 +413,13 @@ ui<-fluidPage(theme = shinytheme("readable"),
 
                        ),
                        br(),
-                       fluidRow(column(6, offset=2,
+                       fluidRow(column(6, offset=3,
                                        htmlOutput("historictable")
                                        )),
 
                        br(),
                        fluidRow(
-                         column(2,
+                         sidebarPanel(width=3,
                                 h4("Projected"),
                                 selectInput("sdmcolor", "Choose a Color Palette", c("Spectral","Spectral2" ,"Viridis", "Magma")),
                                 selectInput("scenario", "Choose a Scenario", c("No Fog",
@@ -326,20 +439,21 @@ ui<-fluidPage(theme = shinytheme("readable"),
                                 leafletOutput("sdmmap", width=800, height=400))
                        ),
                        br(),
-                       fluidRow(column(8, offset=2,
+                       fluidRow(column(8, offset=3,
                                        htmlOutput("projtable")))
 
               ) #SDM tab panel
-              
-              
-              )#nav bar page
+        )#nav bar page
 )#ui 
 
 # Define server logic ----
 server <- function(input, output, session) {
 
-  #current wd is "G:/data/GitHub/244_SMLW" for all files
+  ###############################################
+  ### Summary Tab ###
+  ###############################################
   
+  #Summary page links 
   url1 <- a("Oakology Wesbite", href="https://oakology19.wixsite.com/oakology/island-oaks")
   output$tab1 <- renderUI({
     tagList("", url1)
@@ -349,6 +463,57 @@ server <- function(input, output, session) {
   output$tab2 <- renderUI({
     tagList("Link:", url2)
   })
+  
+  ###############################################
+  ### Oak Tab ###
+  ###############################################
+  
+  points_color <- reactive({
+    input$points_colors
+    
+  })
+  
+  # Read in the data
+  combo <- read.csv("data/oaks/sri/combo.csv")
+  scr_points <- read.csv("data/oaks/scr/all_4326.csv")
+  
+  output$SCRpoints <- renderLeaflet({
+    leaflet() %>% 
+      addProviderTiles(providers$Esri.WorldImagery) %>% 
+      setView(lng = -119.722862, lat = 34.020433, zoom = 11) %>% 
+      addCircleMarkers(radius = 4, fillColor = points_color(), stroke = FALSE, fillOpacity = 0.5, data = scr_points, lng = ~POINT_X, lat = ~POINT_Y)
+    
+  })
+  
+  filteredData <- reactive({
+    combo[ combo$Age == input$age, ]
+  })
+  
+  # Read in the data
+  combo <- read.csv("data/oaks/sri/combo.csv")
+  scr_points <- read.csv("data/oaks/scr/all_4326.csv")
+  alloak <- combo[ combo$Age == "all", ]
+  
+  
+  output$SRIpoints <- renderLeaflet({
+    leaflet() %>% 
+      addProviderTiles(providers$Esri.WorldImagery) %>% 
+      setView(lng = -120.107103, lat = 33.968757, zoom = 11)
+  })
+  
+  
+  observe({
+    
+    leafletProxy("SRIpoints") %>%
+      clearMarkers() %>% 
+      addCircleMarkers(data = alloak, lng = ~POINT_X, lat = ~POINT_Y, radius = 4, fillColor = "mintcream", stroke = FALSE, fillOpacity = 0.4) %>%
+      addCircleMarkers(data = filteredData(), lng = ~POINT_X, lat = ~POINT_Y, radius = 4, fillColor = points_color(), stroke = FALSE, fillOpacity = 0.4)
+  })
+  
+  
+  ###############################################
+  ### Island Tab ###
+  ###############################################
   
   output$islandmap <- renderLeaflet({
     scrveg<-raster("data/islands/scr/veg.tif")
@@ -389,7 +554,379 @@ server <- function(input, output, session) {
     
   }) #end render leaflet
   
+  ###############################################
+  ### Climate Tab ###
+  ###############################################
   
+  output$SRIclimatemap <- renderLeaflet({
+    
+    
+    climate_scen <-switch(input$climate_scenario,
+                          "MPI 4.5 (Warm, Wet)"=climate_scen<-"MPI_rcp45", 
+                          "CCSM4 (Hot, Wet)"=climate_scen<-"CCSM4_rcp85", 
+                          "MIROC 4.5 (Warm,Dry)"=climate_scen<-"MIROC_rcp45", 
+                          "MIROC 8.5 (Hot, Dry)"=climate_scen<-"MIROC_rcp85")
+    
+    climate_hands <-switch(input$climate_time,
+                           "2010-2039"=climate_hands<-"2010_2039",
+                           "2040-2069"=climate_hands<-"2040_2069", 
+                           "2070-2099"=climate_hands<-"2070_2099")
+    
+    climate_var<-switch(input$climate_variable,
+                        "Climate Water Deficit"=climate_var<-"cwd",
+                        "Precipitation"=climate_var<-"ppt", 
+                        "Minimum Winter Temperature"=climate_var<-"tmn", 
+                        "Maximum Summer Temperature"=climate_var<-"tmx")
+    
+    
+    
+    climate_sri<-raster(paste0("data/climate/sri/", climate_scen,  "_", climate_hands, "/", climate_var, ".tif"))
+    # climate_sri<-raster(paste0("data/climate/sri/historic/cwd.tif")) 
+    proj4string(climate_sri) <- CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+    
+    
+    
+    climate_stack_list <- list.dirs("data/climate/sri/", recursive = TRUE, full.names = TRUE)
+    files <- climate_stack_list[grep(paste0(climate_scen), climate_stack_list, fixed=T)]
+    climate_files2 <- dir(files, recursive=TRUE, full.names=TRUE, pattern = paste0(climate_var, ".tif"))
+    
+    climatehist_files <- list.files("data/climate/sri/historic", recursive=TRUE, full.names=TRUE, pattern = paste0(climate_var, ".tif"))
+    
+    climate_files <- c(climatehist_files, climate_files2)
+    
+    climate_stack <- stack(climate_files)
+    
+    climate_colors <- reactive({ 
+      input$raster_color_climate
+    })
+    
+    pal <- colorNumeric( 
+      palette = climate_colors(),
+      domain = values(climate_stack),
+      na.color = NA,
+      reverse = TRUE
+    )
+    
+    if (input$climate_variable == "Climate Water Deficit") {
+      climate_title = "CWD (mm)"
+    } else if (input$climate_variable == "Precipitation") {
+      climate_title = "PPT (mm)"
+    } else if (input$climate_variable == "Maximum Summer Temperature") {
+      climate_title = "TMX (°C)"
+    } else if (input$climate_variable == "Minimum Winter Temperature") {
+      climate_title = "TMN (°C)"
+    } else
+      climate_title = "CWD (mm)"
+    
+    
+    leaflet() %>% 
+      addProviderTiles(providers$OpenStreetMap.Mapnik) %>% 
+      setView(lng = -120.107103, lat = 33.968757, zoom = 11) %>% 
+      addRasterImage(climate_sri, colors = pal, opacity = 0.8) %>% 
+      addLegend("bottomright", pal = pal, values= values(climate_stack),
+                title = climate_title)
+    
+    
+  })
+  
+  output$sriHC <- renderLeaflet({
+    
+    
+    climate_scen <-switch(input$climate_scenario,
+                          "MPI 4.5 (Warm, Wet)"=climate_scen<-"MPI_rcp45", 
+                          "CCSM4 (Hot, Wet)"=climate_scen<-"CCSM4_rcp85", 
+                          "MIROC 4.5 (Warm,Dry)"=climate_scen<-"MIROC_rcp45", 
+                          "MIROC 8.5 (Hot, Dry)"=climate_scen<-"MIROC_rcp85")
+    
+    climate_hands <-switch(input$climate_time,
+                           "2010-2039"=climate_hands<-"2010_2039",
+                           "2040-2069"=climate_hands<-"2040_2069", 
+                           "2070-2099"=climate_hands<-"2070_2099")
+    
+    
+    climate_var<-switch(input$climate_variable,
+                        "Climate Water Deficit"=climate_var<-"cwd",
+                        "Precipitation"=climate_var<-"ppt", 
+                        "Minimum Winter Temperature"=climate_var<-"tmn", 
+                        "Maximum Summer Temperature"=climate_var<-"tmx")
+    
+    
+    
+    climate_sri<-raster(paste0("data/climate/sri/historic/", climate_var, ".tif"))
+    
+    proj4string(climate_sri) <- CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+    
+    climate_stack_list <- list.dirs("data/climate/sri/", recursive = TRUE, full.names = TRUE)
+    files <- climate_stack_list[grep(paste0(climate_scen), climate_stack_list, fixed=T)]
+    climate_files2 <- dir(files, recursive=TRUE, full.names=TRUE, pattern = paste0(climate_var, ".tif"))
+    
+    climatehist_files <- list.files("data/climate/sri/historic", recursive=TRUE, full.names=TRUE, pattern = paste0(climate_var, ".tif"))
+    
+    climate_files <- c(climatehist_files, climate_files2)
+    
+    climate_stack <- stack(climate_files)
+    
+    climate_colors <- reactive({
+      input$raster_color_climate
+    })
+    
+    pal <- colorNumeric( 
+      palette = climate_colors(),
+      domain = values(climate_stack),
+      na.color = NA,
+      reverse = TRUE
+    )
+    
+    if (input$climate_variable == "Climate Water Deficit") {
+      climate_title = "CWD (mm)"
+    } else if (input$climate_variable == "Precipitation") {
+      climate_title = "PPT (mm)"
+    } else if (input$climate_variable == "Maximum Summer Temperature") {
+      climate_title = "TMX (°C)"
+    } else if (input$climate_variable == "Minimum Winter Temperature") {
+      climate_title = "TMN (°C)"
+    } else
+      climate_title = "CWD (mm)"
+    
+    
+    leaflet() %>% 
+      addProviderTiles(providers$OpenStreetMap.Mapnik) %>% 
+      setView(lng = -120.107103, lat = 33.968757, zoom = 11) %>% 
+      addRasterImage(climate_sri, colors = pal, opacity = 0.8) %>% 
+      addLegend("bottomright", pal = pal, values= values(climate_stack),
+                title = climate_title)
+    
+    
+  })
+  
+  
+  
+  output$SCRclimatemap <- renderLeaflet({
+    
+    
+    climate_scen <-switch(input$climate_scenario,
+                          "MPI 4.5 (Warm, Wet)"=climate_scen<-"MPI_rcp45", 
+                          "CCSM4 (Hot, Wet)"=climate_scen<-"CCSM4_rcp85", 
+                          "MIROC 4.5 (Warm,Dry)"=climate_scen<-"MIROC_rcp45", 
+                          "MIROC 8.5 (Hot, Dry)"=climate_scen<-"MIROC_rcp85")
+    
+    climate_hands <-switch(input$climate_time,
+                           "2010-2039"=climate_hands<-"2010_2039",
+                           "2040-2069"=climate_hands<-"2040_2069", 
+                           "2070-2099"=climate_hands<-"2070_2099")
+    
+    climate_var<-switch(input$climate_variable,
+                        "Climate Water Deficit"=climate_var<-"cwd",
+                        "Precipitation"=climate_var<-"ppt", 
+                        "Minimum Winter Temperature"=climate_var<-"tmn", 
+                        "Maximum Summer Temperature"=climate_var<-"tmx")
+    
+    
+    
+    climate_scr<-raster(paste0("data/climate/scr/", climate_scen,  "_", climate_hands, "/", climate_var, ".tif"))
+    
+    proj4string(climate_scr) <- CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+    
+    climate_stack_list <- list.dirs("data/climate/scr/", recursive = TRUE, full.names = TRUE)
+    files <- climate_stack_list[grep(paste0(climate_scen), climate_stack_list, fixed=T)]
+    climate_files2 <- dir(files, recursive=TRUE, full.names=TRUE, pattern = paste0(climate_var, ".tif"))
+    
+    climatehist_files <- list.files("data/climate/scr/historic", recursive=TRUE, full.names=TRUE, pattern = paste0(climate_var, ".tif"))
+    
+    climate_files <- c(climatehist_files, climate_files2)
+    
+    climate_stack <- stack(climate_files)
+    
+    climate_colors <- reactive({
+      input$raster_color_climate
+    })
+    
+    climate_pal <- colorNumeric(
+      palette = climate_colors(),
+      domain = values(climate_stack),
+      na.color = NA,
+      reverse = TRUE
+    )
+    
+    
+    if (input$climate_variable == "Climate Water Deficit") {
+      climate_title = "CWD (mm)"
+    } else if (input$climate_variable == "Precipitation") {
+      climate_title = "PPT (mm)"
+    } else if (input$climate_variable == "Maximum Summer Temperature") {
+      climate_title = "TMX (°C)"
+    } else if (input$climate_variable == "Minimum Winter Temperature") {
+      climate_title = "TMN (°C)"
+    } else
+      climate_title = "CWD (mm)"
+    
+    
+    
+    leaflet() %>% 
+      addProviderTiles(providers$OpenStreetMap.Mapnik) %>% 
+      setView(lng = -119.722862, lat = 34.020433, zoom = 11) %>% 
+      addRasterImage(climate_scr, colors = climate_pal, opacity = 0.8) %>% 
+      addLegend("bottomright", pal = climate_pal, values= values(climate_stack),
+                title = climate_title)
+    
+    
+    
+  })
+  
+  output$scrHC <- renderLeaflet({
+    
+    
+    climate_scen <-switch(input$climate_scenario,
+                          "MPI 4.5 (Warm, Wet)"=climate_scen<-"MPI_rcp45", 
+                          "CCSM4 (Hot, Wet)"=climate_scen<-"CCSM4_rcp85", 
+                          "MIROC 4.5 (Warm,Dry)"=climate_scen<-"MIROC_rcp45", 
+                          "MIROC 8.5 (Hot, Dry)"=climate_scen<-"MIROC_rcp85")
+    
+    climate_hands <-switch(input$climate_time,
+                           "2010-2039"=climate_hands<-"2010_2039",
+                           "2040-2069"=climate_hands<-"2040_2069", 
+                           "2070-2099"=climate_hands<-"2070_2099")
+    
+    climate_var<-switch(input$climate_variable,
+                        "Climate Water Deficit"=climate_var<-"cwd",
+                        "Precipitation"=climate_var<-"ppt", 
+                        "Minimum Winter Temperature"=climate_var<-"tmn", 
+                        "Maximum Summer Temperature"=climate_var<-"tmx")
+    
+    climate_scr<-raster(paste0("data/climate/scr/historic/", climate_var, ".tif"))
+    
+    proj4string(climate_scr) <- CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+    
+    climate_stack_list <- list.dirs("data/climate/scr/", recursive = TRUE, full.names = TRUE)
+    files <- climate_stack_list[grep(paste0(climate_scen), climate_stack_list, fixed=T)]
+    climate_files2 <- dir(files, recursive=TRUE, full.names=TRUE, pattern = paste0(climate_var, ".tif"))
+    
+    climatehist_files <- list.files("data/climate/scr/historic", recursive=TRUE, full.names=TRUE, pattern = paste0(climate_var, ".tif"))
+    
+    climate_files <- c(climatehist_files, climate_files2)
+    
+    climate_stack <- stack(climate_files)
+    
+    climate_colors <- reactive({
+      input$raster_color_climate
+    })
+    
+    climate_pal <- colorNumeric(
+      palette = climate_colors(),
+      domain = values(climate_stack),
+      na.color = NA,
+      reverse = TRUE
+    )
+    
+    
+    if (input$climate_variable == "Climate Water Deficit") {
+      climate_title = "CWD (mm)"
+    } else if (input$climate_variable == "Precipitation") {
+      climate_title = "PPT (mm)"
+    } else if (input$climate_variable == "Maximum Summer Temperature") {
+      climate_title = "TMX (°C)"
+    } else if (input$climate_variable == "Minimum Winter Temperature") {
+      climate_title = "TMN (°C)"
+    } else
+      climate_title = "CWD (mm)"
+    
+    leaflet() %>% 
+      addProviderTiles(providers$OpenStreetMap.Mapnik) %>% 
+      setView(lng = -119.722862, lat = 34.020433, zoom = 11) %>% 
+      addRasterImage(climate_scr, colors = climate_pal, opacity = 0.8) %>% 
+      addLegend("bottomright", pal = climate_pal, values= values(climate_stack),
+                title = climate_title)
+ 
+  })
+  
+
+  ###############################################
+  ### Fog Tab ###
+  ###############################################
+  
+  output$scrfogmap <- renderLeaflet({
+    foggy_scen<-switch(input$fogscen,
+                       "Constant"=scen<-"const", 
+                       "Increase"=scen<-"inc", 
+                       "Decrease"=scen<-"dec", 
+                       "Elevation Threshold"=scen<-"elev")
+    
+    fog_time<-switch(input$timeperiods,
+                     "1981-2010"=time<-"historic",
+                     "2010-2039"=time<-"2010_2039",
+                     "2040-2069"=time<-"2040_2069", 
+                     "2070-2099"=time<-"2070_2099")
+    
+    
+    fog_scr<-raster(paste0("data/fog/scr/",foggy_scen,"/", fog_time, ".tif"))
+    proj4string(fog_scr) <- CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+    fog_stack_list <- list.dirs("data/fog/scr/", full.names = TRUE)
+    fog_files <- fog_stack_list[grep(paste0(foggy_scen), fog_stack_list, fixed=T)]
+    fog_files_list <- list.files(fog_files, full.names = TRUE)
+    fog_files2 <- fog_files_list[grep(".tif", fog_files_list, fixed=T)]
+    fog_stack <- stack(fog_files2)
+    
+    fog_pal <- colorNumeric(
+      palette = "Blues",
+      domain = values(fog_stack),
+      na.color = NA
+    )
+    
+    
+    leaflet() %>% 
+      addProviderTiles(providers$OpenStreetMap.Mapnik) %>%
+      setView(lng = -119.722862, lat = 34.020433, zoom = 11) %>% 
+      addRasterImage(fog_scr, colors = fog_pal, opacity = 0.8) %>% 
+      addLegend("topright", pal = fog_pal, values= values(fog_stack),
+                title = "Probability",
+                labFormat = labelFormat(transform=function(fog_scr) sort (fog_scr, decreasing=FALSE)))
+    
+    
+  }) #end render leaflet
+  
+  output$srifogmap <- renderLeaflet({
+    foggy_scen<-switch(input$fogscen,
+                       "Constant"=scen<-"const", 
+                       "Increase"=scen<-"inc", 
+                       "Decrease"=scen<-"dec", 
+                       "Elevation Threshold"=scen<-"elev")
+    
+    fog_time<-switch(input$timeperiods,
+                     "1981-2010"=time<-"historic",
+                     "2010-2039"=time<-"2010_2039",
+                     "2040-2069"=time<-"2040_2069", 
+                     "2070-2099"=time<-"2070_2099")
+    
+    
+    fog_sri<-raster(paste0("data/fog/sri/",foggy_scen,"/", fog_time, ".tif"))
+    proj4string(fog_sri) <- CRS("+proj=aea +lat_1=34 +lat_2=40.5 +lat_0=0 +lon_0=-120 +x_0=0 +y_0=-4000000 +ellps=GRS80 +datum=NAD83 +units=m +no_defs")
+    fog_stack_list <- list.dirs("data/fog/sri/", full.names = TRUE)
+    fog_files <- fog_stack_list[grep(paste0(foggy_scen), fog_stack_list, fixed=T)]
+    fog_files_list <- list.files(fog_files, full.names = TRUE)
+    fog_files2 <- fog_files_list[grep(".tif", fog_files_list, fixed=T)]
+    fog_stack <- stack(fog_files2)
+    
+    fog_pal <- colorNumeric(
+      palette = "Blues",
+      domain = values(fog_stack),
+      na.color = NA
+    )
+    
+    leaflet() %>% 
+      addProviderTiles(providers$OpenStreetMap.Mapnik)  %>%
+      setView(lng = -120.107103, lat = 33.968757, zoom = 11) %>% 
+      addRasterImage(fog_sri, colors = fog_pal, opacity = 0.8) %>% 
+      addLegend("topright", pal = fog_pal, values= values(fog_stack),
+                title = "Probability",
+                labFormat = labelFormat(transform=function(fog_stack) sort (fog_stack, decreasing=FALSE)))
+    
+    
+  })#end render leaflet
+
+
+  ###############################################
+  ### SDM Tab ###
+  ###############################################
   
   output$histsdmmap <- renderLeaflet({
     
