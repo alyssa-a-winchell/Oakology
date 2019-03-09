@@ -21,7 +21,7 @@ library(kableExtra)
 
 ui<-fluidPage(theme = shinytheme("yeti"),
               titlePanel("Climate Change Vulnerability Assessment of Island Oaks"),
-              navbarPage("Oakology", inverse=TRUE,
+              navbarPage("Oakology", 
               tabPanel("Summary",
                        sidebarPanel(width=3,
                         h2("Oakology Bren Group Project"),
