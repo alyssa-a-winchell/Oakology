@@ -19,9 +19,9 @@ library(shinyWidgets)
 library(colorspace)
 library(kableExtra)
 
-ui<-fluidPage(theme = shinytheme("readable"),
+ui<-fluidPage(theme = shinytheme("yeti"),
               titlePanel("Climate Change Vulnerability Assessment of Island Oaks"),
-              navbarPage("Oakology",
+              navbarPage("Oakology", inverse=TRUE,
               tabPanel("Summary",
                        sidebarPanel(width=3,
                         h2("Oakology Bren Group Project"),
