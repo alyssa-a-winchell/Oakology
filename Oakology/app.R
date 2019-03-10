@@ -169,10 +169,10 @@ ui<-fluidPage(
                                       From 1948 – 2014, stratus above 255 meters has been decreased by 55% while stratus 
                                       below 255 meters, which can be considered fog, has increased by 40%. We used these 
                                       fog prediction scenarios in tandem with the climate future scenarios."),
-                                    p("We ran SDM scenarios both with and without the various fog scenarios since we created 
+                                    p("We ran SDM scenarios both with and without fog scenarios since we created 
                                       the fog projections ourselves based on the best available information. Given the major 
-                                      uncertainties in future fog trends, we wanted to show some potential possibilities for 
-                                      how fog will change, but also show the no fog scenario to remove this uncertainty 
+                                      uncertainties in future fog trends, the four projected fog scenarios aim to account for some of the 
+                                      uncertainties, while the no fog scenario removes this uncertainty 
                                       altogether. Fog proved to be an important predictor of suitable habitat and increased 
                                       the fit of each model, but due to the major uncertainties in our projections we thought 
                                       it was important to have an option where fog was not included.")
@@ -363,11 +363,9 @@ ui<-fluidPage(
                        sidebarLayout(
                          sidebarPanel(width=3,
                             h3(strong("Island Oaks")),
-                            p("The data shown here represent island oak present points for Santa Cruz and Santa Rosa
+                            p("The data shown here represent island oak presence points for Santa Cruz and Santa Rosa
                               Islands, where each presence point symbolizes either individual trees or a grove of island oak.
-                              For Santa Rosa Island, choose between adults and seedlings to have the points show up
-                              in the chosen color, while all other points (unknown oaks and the unselected category)
-                              will be shown in white. We recommend zooming in, to better see where the points fall on
+                              For Santa Rosa Island, choose between adults and seedlings to highlight the age structure category            of interest in the chosen color, while all other points (oaks with unknown age and the unselected category)  will be shown in white. We recommend zooming in, to better see where the points fall on
                               the landscape."),
                             br(),
                            selectInput("points_colors", h4(strong("Choose Color:")),
@@ -417,7 +415,7 @@ ui<-fluidPage(
                        fluidRow(
                          sidebarPanel(width=3,
                           h3(strong("Island Variables")),
-                          p("The Islands tab allows users to select between viewing digital elevation models
+                          p("The Islands tab allows users to select between viewing digital elevation models (DEM)
                                   or vegetation class layers for Santa Cruz and Santa Rosa Islands. The layers may
                             take a second to load as they are relatively detailed and fine resolution. More information 
                             on the layers can be found in the tab summary and data tab under Summary."),
@@ -434,7 +432,7 @@ ui<-fluidPage(
                        sidebarLayout(
                          sidebarPanel(width=3,
                           h3(strong("Climate Variables")),
-                          p("Select between various climate variables and compare the variable between current and a
+                          p("Select a climate variable and compare the outputs of the historic time period and the
                                 selected future climate projection and time period."),
                           br(),
                           selectInput("raster_color_climate", h4(strong("Choose Color Theme:")),
@@ -486,8 +484,8 @@ ui<-fluidPage(
                          sidebarPanel(width=3,
                             h3(strong("Fog Scenarios")),        
                             p("Select between the four possible fog scenarios, and visualize the changes in time
-                              from the current (historic) time period (1981-2010) across the three future time
-                              periods. The fog layer is identical across the four scenarios for the current time 
+                              from the historic time period (1981-2010) across the three projected time
+                              periods. The fog layer is identical across the four scenarios for the historic time 
                               period."),
                             br(),
                              selectInput("fogscen", h4(strong("Fog Scenarios")), 
@@ -513,12 +511,12 @@ ui<-fluidPage(
                        fluidRow(
                          sidebarPanel(width=3,
                                 h3(strong("Historic")),
-                                p("Species distribution model (SDM) results for the island oak in the current (historic) time
+                                p("Species distribution model (SDM) results for the island oak in the historic time
                                   period, with or without fog included in the analyses. We highly recommend reading the tab 
                                   summary and methodology tab under summary."),
                                 br(),
                                 selectInput("histsdmcolor", h4(strong("Choose a Color Palette")), 
-                                            c("Spectral","Spectral2" ,"Viridis", "Magma")),
+                                            c("Spectral","Inverse Spectral" ,"Viridis", "Magma")),
                                 selectInput("histscenario", h4(strong("Choose a Scenario")), 
                                             c("No Fog","Fog"))
                                 ),
@@ -539,12 +537,12 @@ ui<-fluidPage(
                          sidebarPanel(width=3,
                                 h3(strong("Projected")),
                                 p("Species distribution model (SDM) results for the island oak across projected fog scenarios,
-                                  climate projections, and time periods. The no fog scenario matches with the historic no fog layer,
-                                  and the various fog scenarios match with the historic fog layer. We highly recommend reading 
+                                  climate projections, and time periods. The no fog scenario corresponds with the historic no fog option,
+                                  and the constant fog, fog increase, fog decrease, and fog elevation threshold scenarios correspond with the historic fog option. We highly recommend reading 
                                   the tab summary and methodology tab under summary."),
                                 br(),
                                 selectInput("sdmcolor", h4(strong("Choose a Color Palette")), 
-                                            c("Spectral","Spectral2" ,"Viridis", "Magma")),
+                                            c("Spectral","Inverse Spectral" ,"Viridis", "Magma")),
                                 selectInput("scenario", h4(strong("Choose a Scenario")), 
                                             c("No Fog","Constant Fog","Fog Increase","Fog Decrease","Fog Elevation Threshold")),
                                 selectInput("projection", h4(strong("Choose a Projection")), 
@@ -1061,7 +1059,7 @@ server <- function(input, output, session) {
     
     histsdmcol <- switch(input$histsdmcolor,
                          "Spectral" = colorNumeric(palette = "Spectral", domain=values(histmerged), na.color = "transparent", reverse=TRUE),
-                         "Spectral2" = colorNumeric(palette = "Spectral", domain=values(histmerged), na.color = "transparent", reverse=FALSE),
+                         "Inverse Spectral" = colorNumeric(palette = "Spectral", domain=values(histmerged), na.color = "transparent", reverse=FALSE),
                          "Viridis" = colorNumeric(palette = "viridis", domain=values(histmerged), na.color = "transparent", reverse=TRUE),
                          "Magma" = colorNumeric(palette = "magma", domain=values(histmerged), na.color = "transparent", reverse=TRUE))
     
@@ -1151,7 +1149,7 @@ server <- function(input, output, session) {
        
      sdmcol <- switch(input$sdmcolor,
                       "Spectral" = colorNumeric(palette = "Spectral", domain=values(merged), na.color = "transparent", reverse=TRUE),
-                      "Spectral2" = colorNumeric(palette = "Spectral", domain=values(merged), na.color = "transparent", reverse=FALSE),
+                      "Inverse Spectral" = colorNumeric(palette = "Spectral", domain=values(merged), na.color = "transparent", reverse=FALSE),
                       "Viridis" = colorNumeric(palette = "viridis", domain=values(merged), na.color = "transparent", reverse=TRUE),
                       "Magma" = colorNumeric(palette = "magma", domain=values(merged), na.color = "transparent", reverse=TRUE))
      
