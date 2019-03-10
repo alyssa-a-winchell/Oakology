@@ -22,8 +22,8 @@ library(kableExtra)
 ui<-fluidPage(
   theme = shinytheme("yeti"),
               titlePanel(strong("Climate Change Vulnerability Assessment of Island Oaks")),
-              navbarPage("Oakology",
-              tabPanel("Summary",
+              navbarPage(h5("Oakology"),
+              tabPanel(h5("Summary"),
                        sidebarPanel(width=3,
                         h2(strong("Oakology Group Project")),
                         br(),
@@ -358,16 +358,22 @@ ui<-fluidPage(
                        br(),
                        br(),
                        br()
-                    
-      
                        )),
-              tabPanel("Oaks",
+              tabPanel(h5("Oaks"),
                        sidebarLayout(
                          sidebarPanel(width=3,
-                           selectInput("points_colors", "Choose Color:",
-                                                  c("Chartreuse" = "#ADFF2F",
+                            h3(strong("Island Oaks")),
+                            p("The data shown here represent island oak present points for Santa Cruz and Santa Rosa
+                              Islands, where each presence point symbolizes either individual trees or a grove of island oak.
+                              For Santa Rosa Island, choose between adults and seedlings to have the points show up
+                              in the chosen color, while all other points (unknown oaks and the unselected category)
+                              will be shown in white. We recommend zooming in, to better see where the points fall on
+                              the landscape."),
+                            br(),
+                           selectInput("points_colors", h4(strong("Choose Color:")),
+                                                  c("Periwinkle" = "#B0C4DE",
+                                                    "Chartreuse" = "#ADFF2F",
                                                     "Vermillion" = "#FF4500",
-                                                    "Periwinkle" = "#B0C4DE",
                                                     "Pewter" = "#708090",
                                                     "Celadon" = "#48D1CC",
                                                     "Indigo" = "#4B0082",
@@ -378,24 +384,27 @@ ui<-fluidPage(
                                                     "Cerulean" = "#1E90FF",
                                                     "Salmon" = "#FA8072",
                                                     "Atomic Tangerine" = "#FF6347")),
-                                      p("Each point symbolizes either individual trees or a grove of island oak. Data Source: The National Parks Service and Laura Kindsvater.")
+                           p(em("Data Source: The National Parks Service and Laura Kindsvater."))
                          ),
                          mainPanel(
-                           
                            tabsetPanel(
                              tabPanel("Santa Cruz",
+                                      br(),
                                       leafletOutput("SCRpoints", width=800, height=400),
+                                      br(),
                                       p("Notice how the oaks in Santa Cruz are concentrated on the northern side of the island. 
                                         In total, there are 271 total oak points on Santa Cruz.")),
                              
                              tabPanel("Santa Rosa",
+                                      br(),
                                       sidebarPanel(
-                                        radioButtons("age", "Choose Age Group:",
+                                        radioButtons("age", h4(strong("Choose Age Group:")),
                                                      c("Seedlings" = "seed",
                                                        "Adults" = "adult")),
-                                        width = 5
+                                        width = 3
                                       ),
                                       leafletOutput("SRIpoints", width=800, height=400),
+                                      br(),
                                       p("Notice how the oaks in Santa Rosa are found mainly in the central valley and away from the coast. 
                                         In total, there is a total of 1001 oak points on Santa Rosa. Out of these points, 202 are seedlings and 90 are adults. 
                                         Selected color highlights either known seedlings/saplings or known adults, depending on age group option selected.")
@@ -404,140 +413,153 @@ ui<-fluidPage(
                          )
                        )
               ), #End of Oak Points
-              tabPanel("Islands",
-                       fluidRow(
-                         column(8, offset=3,
-                                p("The Islands tab allows users to select between viewing digital elevation models
-                                  or vegetation class layers for Santa Cruz and Santa Rosa Islands. The layers may
-                                  take a second to load as they are relatively detailed and fine resolution. More information 
-                                  on the layers can be found in the tab summary and data tab under Summary."))
-                       ),
-                       br(),
+              tabPanel(h5("Islands"),
                        fluidRow(
                          sidebarPanel(width=3,
-                           selectInput("islandvar", "Choose an Island Variable", c("DEM", "Vegetation"))
+                          h3(strong("Island Variables")),
+                          p("The Islands tab allows users to select between viewing digital elevation models
+                                  or vegetation class layers for Santa Cruz and Santa Rosa Islands. The layers may
+                            take a second to load as they are relatively detailed and fine resolution. More information 
+                            on the layers can be found in the tab summary and data tab under Summary."),
+                          br(),
+                           selectInput("islandvar", h4(strong("Choose an Island Variable")), c("DEM", "Vegetation")),
+                           p(em("Data Source: The National Parks Service."))
                            ),
-                         column(4,leafletOutput("islandmap", width=1200, height=650))
+                         column(4,leafletOutput("islandmap", width=1000, height=600))
                        ),
                        br(),
                        br()
                        ),
-              tabPanel("Climate", 
-                       
+              tabPanel(h5("Climate"), 
                        sidebarLayout(
                          sidebarPanel(width=3,
-                           selectInput("climate_variable", "Choose an Environmental Variable:",
+                          h3(strong("Climate Variables")),
+                          p("Select between various climate variables and compare the variable between current and a
+                                selected future climate projection and time period."),
+                          br(),
+                          selectInput("raster_color_climate", h4(strong("Choose Color Theme:")),
+                                      c("Rainbow" = "Spectral",
+                                        "Yellow, Green, Blue" = "YlGnBu",
+                                        "Yellow, Green" = "YlGn",
+                                        "Purple, Red" = "PuRd",
+                                        "Yellow, Orange, Red" = "YlOrRd")),
+                           selectInput("climate_variable", h4(strong("Choose an Environmental Variable:")),
                                        choices = c("Climate Water Deficit", 
                                                    "Precipitation", 
                                                    "Minimum Winter Temperature", 
                                                    "Maximum Summer Temperature")),
-                           selectInput("climate_scenario", "Choose a Climate Scenario:",
+                           selectInput("climate_scenario", h4(strong("Choose a Climate Scenario:")),
                                        choices = c("MPI 4.5 (Warm, Wet)", 
                                                    "CCSM4 (Hot, Wet)", 
                                                    "MIROC 4.5 (Warm,Dry)", 
                                                    "MIROC 8.5 (Hot, Dry)")),
-                           # Input: Custom 30 yr periods format with basic animation
-                           sliderTextInput("climate_time","Time Periods", 
+                           sliderTextInput("climate_time",h4(strong("Time Periods")), 
                                            choices = c("2010-2039", 
                                                        "2040-2069", 
                                                        "2070-2099"),
                                            animate = TRUE),
-                           selectInput("raster_color_climate", "Choose Color Theme:",
-                                       c("Rainbow" = "Spectral",
-                                         "Yellow, Green, Blue" = "YlGnBu",
-                                         "Yellow, Green" = "YlGn",
-                                         "Purple, Red" = "PuRd",
-                                         "Yellow, Orange, Red" = "YlOrRd")),
-                           p("Data Source: Flint, L.E. and Flint, A.L., 2014, California Basin Characterization Model: A Dataset of Historical and Future Hydrologic Response to Climate Change, (ver. 1.1, May 2017): U.S. Geological Survey Data Release, https://doi.org/10.5066/F76T0JPB.")
+                           p(em("Data Source: Flint and Flint 2014."))
+
                          ),
                          
                          mainPanel(
                            tabsetPanel(
                              tabPanel("Santa Cruz",
-                                      h3("Historic Climate"),
+                                      h3(strong("Historic")),
                                       leafletOutput("scrHC", width=800, height=400),
-                                       h3("Projected Climate"),
+                                       h3(strong("Projected")),
                                        leafletOutput("SCRclimatemap", width=800, height=400)),
                              tabPanel("Santa Rosa",
-                                      h3("Historic Climate"),
+                                      h3(strong("Historic")),
                                       leafletOutput("sriHC", width=800, height=400),
-                                      h3("Projected Climate"),
+                                      h3(strong("Projected")),
                                       leafletOutput("SRIclimatemap", width=800, height=400))
                            )),
                          position = c("left", "right"),
                          fluid = FALSE
-                       )
+                       ),
+                       br(),
+                       br()
               ), #end climate tab
-              tabPanel("Fog",
-                       # Select box with options for fog scenarios
+              tabPanel(h5("Fog"),
                        sidebarLayout(
                          sidebarPanel(width=3,
-                           selectInput("fogscen", "Fog Scenarios", 
-                                       choices = c("Constant", "Increase", "Decrease", "Elevation Threshold")),
-                           # Input: Custom 30 yr periods format with basic animation
-                           sliderTextInput("timeperiods","Time Periods" , 
-                                           choices = c("1981-2010", "2010-2039", "2040-2069", "2070-2099"),
-                                           animate = TRUE),
-                           p("Data Source: Rastogi et al., 2016.")
+                            h3(strong("Fog Scenarios")),        
+                            p("Select between the four possible fog scenarios, and visualize the changes in time
+                              from the current (historic) time period (1981-2010) across the three future time
+                              periods. The fog layer is identical across the four scenarios for the current time 
+                              period."),
+                            br(),
+                             selectInput("fogscen", h4(strong("Fog Scenarios")), 
+                             choices = c("Constant", "Increase", "Decrease", "Elevation Threshold")),
+                            sliderTextInput("timeperiods",h4(strong("Time Periods")) , 
+                                 choices = c("1981-2010", "2010-2039", "2040-2069", "2070-2099"),
+                                 animate = TRUE),
+                           p(em("Data Source: Rastogi et al., 2016."))
+
                          ),
-                         
-                         # Show maps of SRI and SCR with the chosen fog scenario with seperate tabs for each island
                          mainPanel(
                            tabsetPanel(
                              tabPanel("Santa Cruz",
+                                      br(),
                                       leafletOutput("scrfogmap", width=800, height=400)),
                              tabPanel("Santa Rosa",
+                                      br(),
                                       leafletOutput("srifogmap", width=800, height=400))
                            )
                          )
                        )),
-              tabPanel("SDM",
+              tabPanel(h5("SDM"),
                        fluidRow(
-                         column(5, offset=3,
-                                p("The SDM tab provides our species distribution model (SDM) results for the island oak. 
-                         Before exploring the results shown in this tab, we highly recommend reading the tab summary
-                         page under project summary as well as the methodology tab."))
+                         sidebarPanel(width=3,
+                                h3(strong("Historic")),
+                                p("Species distribution model (SDM) results for the island oak in the current (historic) time
+                                  period, with or without fog included in the analyses. We highly recommend reading the tab 
+                                  summary and methodology tab under summary."),
+                                br(),
+                                selectInput("histsdmcolor", h4(strong("Choose a Color Palette")), 
+                                            c("Spectral","Spectral2" ,"Viridis", "Magma")),
+                                selectInput("histscenario", h4(strong("Choose a Scenario")), 
+                                            c("No Fog","Fog"))
+                                ),
+                         column(4,
+                                leafletOutput("histsdmmap", width=800, height=400)),
+                         column(6,
+                                htmlOutput("historictable")
+                                )
                        ),
+                       br(),
+                       # In case table should be made fluidrow instead of column for placement
+                       # fluidRow(column(6, offset=3,
+                       #                 htmlOutput("historictable")
+                       #                 )),
+
                        br(),
                        fluidRow(
                          sidebarPanel(width=3,
-                                h4("Historic"),
-                                selectInput("histsdmcolor", "Choose a Color Palette", c("Spectral","Spectral2" ,"Viridis", "Magma")),
-                                selectInput("histscenario", "Choose a Scenario", c("No Fog",
-                                                                                   "Fog"))),
+                                h3(strong("Projected")),
+                                p("Species distribution model (SDM) results for the island oak across projected fog scenarios,
+                                  climate projections, and time periods. The no fog scenario matches with the historic no fog layer,
+                                  and the various fog scenarios match with the historic fog layer. We highly recommend reading 
+                                  the tab summary and methodology tab under summary."),
+                                br(),
+                                selectInput("sdmcolor", h4(strong("Choose a Color Palette")), 
+                                            c("Spectral","Spectral2" ,"Viridis", "Magma")),
+                                selectInput("scenario", h4(strong("Choose a Scenario")), 
+                                            c("No Fog","Constant Fog","Fog Increase","Fog Decrease","Fog Elevation Threshold")),
+                                selectInput("projection", h4(strong("Choose a Projection")), 
+                                            c("Hot-Wet","Warm-Wet","Warm-Dry","Hot-Dry")),
+                                sliderTextInput("timeperiod", h4(strong("Choose a Time Period")), 
+                                                choices = c("2010-2039","2040-2069","2070-2099"), animate=TRUE)
+                                ),
                          column(4,
-                                leafletOutput("histsdmmap", width=800, height=400))
-
-                       ),
-                       br(),
-                       fluidRow(column(6, offset=3,
-                                       htmlOutput("historictable")
-                                       )),
-
-                       br(),
-                       fluidRow(
-                         sidebarPanel(width=3,
-                                h4("Projected"),
-                                selectInput("sdmcolor", "Choose a Color Palette", c("Spectral","Spectral2" ,"Viridis", "Magma")),
-                                selectInput("scenario", "Choose a Scenario", c("No Fog",
-                                                                               "Constant Fog",
-                                                                               "Fog Increase",
-                                                                               "Fog Decrease",
-                                                                               "Fog Elevation Threshold")),
-                                selectInput("projection", "Choose a Projection", c("Hot-Wet",
-                                                                                   "Warm-Wet",
-                                                                                   "Warm-Dry",
-                                                                                   "Hot-Dry")), #figure out how to make historic conditional for time period
-                                #selectInput("timeperiod", "Choose a Time Period", c("2010-2039","2040-2069", "2070-2099")),
-                                sliderTextInput("timeperiod", "Choose a Time Period", choices = c("2010-2039",
-                                                                                                  "2040-2069",
-                                                                                                  "2070-2099"), animate=TRUE)),
-                         column(4,
-                                leafletOutput("sdmmap", width=800, height=400))
-                       ),
-                       br(),
-                       fluidRow(column(8, offset=3,
-                                       htmlOutput("projtable")))
+                                leafletOutput("sdmmap", width=800, height=400)),
+                         column(6, 
+                                htmlOutput("projtable")
+                               )
+                       )#,
+                       # fluidRow(column(6, offset=3,
+                       #                 htmlOutput("projtable")))
 
               ) #SDM tab panel
         )#nav bar page
@@ -686,13 +708,9 @@ server <- function(input, output, session) {
     climate_stack_list <- list.dirs("data/climate/sri/", recursive = TRUE, full.names = TRUE)
     files <- climate_stack_list[grep(paste0(climate_scen), climate_stack_list, fixed=T)]
     climate_files2 <- dir(files, recursive=TRUE, full.names=TRUE, pattern = paste0(climate_var, ".tif"))
-    
     climatehist_files <- list.files("data/climate/sri/historic", recursive=TRUE, full.names=TRUE, pattern = paste0(climate_var, ".tif"))
-    
     climate_files <- c(climatehist_files, climate_files2)
-    
     climate_stack <- stack(climate_files)
-    
     climate_colors <- reactive({ 
       input$raster_color_climate
     })
