@@ -368,7 +368,7 @@ ui<-fluidPage(
                               For Santa Rosa Island, choose between adults and seedlings to highlight the age structure category            of interest in the chosen color, while all other points (oaks with unknown age and the unselected category)  will be shown in white. We recommend zooming in, to better see where the points fall on
                               the landscape."),
                             br(),
-                           selectInput("points_colors", h4(strong("Choose Color:")),
+                           selectInput("points_colors", h4(strong("Choose a Color")),
                                                   c("Periwinkle" = "#B0C4DE",
                                                     "Chartreuse" = "#ADFF2F",
                                                     "Vermillion" = "#FF4500",
@@ -396,7 +396,7 @@ ui<-fluidPage(
                              tabPanel("Santa Rosa",
                                       br(),
                                       sidebarPanel(
-                                        radioButtons("age", h4(strong("Choose Age Group:")),
+                                        radioButtons("age", h4(strong("Choose an Age Group")),
                                                      c("Seedlings" = "seed",
                                                        "Adults" = "adult")),
                                         width = 3
@@ -435,23 +435,27 @@ ui<-fluidPage(
                           p("Select a climate variable and compare the outputs of the historic time period and the
                                 selected future climate projection and time period."),
                           br(),
-                          selectInput("raster_color_climate", h4(strong("Choose Color Theme:")),
+                          selectInput("raster_color_climate", h4(strong("Choose a Color Theme")),
                                       c("Rainbow" = "Spectral",
-                                        "Yellow, Green, Blue" = "YlGnBu",
-                                        "Yellow, Green" = "YlGn",
-                                        "Purple, Red" = "PuRd",
-                                        "Yellow, Orange, Red" = "YlOrRd")),
-                           selectInput("climate_variable", h4(strong("Choose an Environmental Variable:")),
+                                        "Sailing on a Sunny Day" = "YlGnBu",
+                                        "Dandelion" = "YlGn",
+                                        "Pomegranate" = "PuRd",
+                                        "Apricot" = "YlOrRd",
+                                        "The Dichotemy of Man" = "BrBG",
+                                        "Mango" = "RdYlGn",
+                                        "Eggplant" = "PRGn",
+                                        "Sunset Sailing" = "RdYlBu")),
+                           selectInput("climate_variable", h4(strong("Choose an Environmental Variable")),
                                        choices = c("Climate Water Deficit", 
                                                    "Precipitation", 
                                                    "Minimum Winter Temperature", 
                                                    "Maximum Summer Temperature")),
-                           selectInput("climate_scenario", h4(strong("Choose a Climate Scenario:")),
-                                       choices = c("MPI 4.5 (Warm, Wet)", 
-                                                   "CCSM4 (Hot, Wet)", 
-                                                   "MIROC 4.5 (Warm,Dry)", 
-                                                   "MIROC 8.5 (Hot, Dry)")),
-                           sliderTextInput("climate_time",h4(strong("Time Periods")), 
+                           selectInput("climate_scenario", h4(strong("Choose a Climate Scenario")),
+                                       choices = c("Hot-Wet", 
+                                                   "Warm-Wet", 
+                                                   "Warm-Dry", 
+                                                   "Hot-Dry")),
+                           sliderTextInput("climate_time",h4(strong("Choose a Time Period")), 
                                            choices = c("2010-2039", 
                                                        "2040-2069", 
                                                        "2070-2099"),
@@ -482,7 +486,7 @@ ui<-fluidPage(
               tabPanel(h5("Fog"),
                        sidebarLayout(
                          sidebarPanel(width=3,
-                            h3(strong("Fog Scenarios")),        
+                            h3(strong("Choose a Fog Scenario")),        
                             p("Select between the four possible fog scenarios, and visualize the changes in time
                               from the historic time period (1981-2010) across the three projected time
                               periods. The fog layer is identical across the four scenarios for the historic time 
@@ -490,7 +494,7 @@ ui<-fluidPage(
                             br(),
                              selectInput("fogscen", h4(strong("Fog Scenarios")), 
                              choices = c("Constant", "Increase", "Decrease", "Elevation Threshold")),
-                            sliderTextInput("timeperiods",h4(strong("Time Periods")) , 
+                            sliderTextInput("timeperiods",h4(strong("Choose a Time Period")) , 
                                  choices = c("1981-2010", "2010-2039", "2040-2069", "2070-2099"),
                                  animate = TRUE),
                            p(em("Data Source: Rastogi et al., 2016."))
@@ -679,10 +683,10 @@ server <- function(input, output, session) {
     
     
     climate_scen <-switch(input$climate_scenario,
-                          "MPI 4.5 (Warm, Wet)"=climate_scen<-"MPI_rcp45", 
-                          "CCSM4 (Hot, Wet)"=climate_scen<-"CCSM4_rcp85", 
-                          "MIROC 4.5 (Warm,Dry)"=climate_scen<-"MIROC_rcp45", 
-                          "MIROC 8.5 (Hot, Dry)"=climate_scen<-"MIROC_rcp85")
+                          "Warm-Wet"=climate_scen<-"MPI_rcp45", 
+                          "Hot-Wet"=climate_scen<-"CCSM4_rcp85", 
+                          "Warm-Dry"=climate_scen<-"MIROC_rcp45", 
+                          "Hot-Dry"=climate_scen<-"MIROC_rcp85")
     
     climate_hands <-switch(input$climate_time,
                            "2010-2039"=climate_hands<-"2010_2039",
@@ -746,10 +750,10 @@ server <- function(input, output, session) {
     
     
     climate_scen <-switch(input$climate_scenario,
-                          "MPI 4.5 (Warm, Wet)"=climate_scen<-"MPI_rcp45", 
-                          "CCSM4 (Hot, Wet)"=climate_scen<-"CCSM4_rcp85", 
-                          "MIROC 4.5 (Warm,Dry)"=climate_scen<-"MIROC_rcp45", 
-                          "MIROC 8.5 (Hot, Dry)"=climate_scen<-"MIROC_rcp85")
+                          "Warm-Wet"=climate_scen<-"MPI_rcp45", 
+                          "Hot-Wet"=climate_scen<-"CCSM4_rcp85", 
+                          "Warm-Dry"=climate_scen<-"MIROC_rcp45", 
+                          "Hot-Dry"=climate_scen<-"MIROC_rcp85")
     
     climate_hands <-switch(input$climate_time,
                            "2010-2039"=climate_hands<-"2010_2039",
@@ -818,10 +822,10 @@ server <- function(input, output, session) {
     
     
     climate_scen <-switch(input$climate_scenario,
-                          "MPI 4.5 (Warm, Wet)"=climate_scen<-"MPI_rcp45", 
-                          "CCSM4 (Hot, Wet)"=climate_scen<-"CCSM4_rcp85", 
-                          "MIROC 4.5 (Warm,Dry)"=climate_scen<-"MIROC_rcp45", 
-                          "MIROC 8.5 (Hot, Dry)"=climate_scen<-"MIROC_rcp85")
+                          "Warm-Wet"=climate_scen<-"MPI_rcp45", 
+                          "Hot-Wet"=climate_scen<-"CCSM4_rcp85", 
+                          "Warm-Dry"=climate_scen<-"MIROC_rcp45", 
+                          "Hot-Dry"=climate_scen<-"MIROC_rcp85")
     
     climate_hands <-switch(input$climate_time,
                            "2010-2039"=climate_hands<-"2010_2039",
@@ -890,10 +894,10 @@ server <- function(input, output, session) {
     
     
     climate_scen <-switch(input$climate_scenario,
-                          "MPI 4.5 (Warm, Wet)"=climate_scen<-"MPI_rcp45", 
-                          "CCSM4 (Hot, Wet)"=climate_scen<-"CCSM4_rcp85", 
-                          "MIROC 4.5 (Warm,Dry)"=climate_scen<-"MIROC_rcp45", 
-                          "MIROC 8.5 (Hot, Dry)"=climate_scen<-"MIROC_rcp85")
+                          "Warm-Wet"=climate_scen<-"MPI_rcp45", 
+                          "Hot-Wet"=climate_scen<-"CCSM4_rcp85", 
+                          "Warm-Dry"=climate_scen<-"MIROC_rcp45", 
+                          "Hot-Dry"=climate_scen<-"MIROC_rcp85")
     
     climate_hands <-switch(input$climate_time,
                            "2010-2039"=climate_hands<-"2010_2039",
