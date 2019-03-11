@@ -518,7 +518,7 @@ ui<-fluidPage(
                        sidebarLayout(
                          sidebarPanel(width=3,
                             h3(strong("Choose a Fog Scenario")),        
-                            p("Select between the four possible fog scenarios, and visualize the changes in time
+                            p("Select between the four possible fog scenarios, and visualize the changes in probability of fog inundation
                               from the historic time period (1981-2010) across the three projected time
                               periods. The fog layer is identical across the four scenarios for the historic time 
                               period."),
