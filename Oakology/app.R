@@ -1,12 +1,4 @@
-#Oakology Shiny App
-# Find out more about building applications with Shiny here: http://shiny.rstudio.com/
-
-#Notes
-#Function for select box is selectInput.
-#For slider it's sliderInput
-
-
-# load the shiny package
+# Load the packages
 library(shiny)
 library(shinythemes)
 library(raster)
@@ -19,6 +11,7 @@ library(shinyWidgets)
 library(colorspace)
 library(kableExtra)
 
+#Create shiny user interface
 ui<-fluidPage(
   theme = shinytheme("yeti"),
               titlePanel(strong("Climate Change Vulnerability Assessment of Island Oaks")),
@@ -73,7 +66,7 @@ ui<-fluidPage(
                                       fragmentation and has limited opportunity to re-establish in more suitable regions 
                                       if additional threats force such movement (Harter et al. 2015). As the effects of 
                                       human-induced climate change intensify, island ecologists and managers would like 
-                                      to determine appropriate management practices to ensure survival and health of 
+                                      to determine appropriate management practices to ensure the survival and health of 
                                       island oak on all six islands across its range."),
                                     h3("Significance"),
                                     p("Our clients, The Nature Conservancy and the Santa Barbara Botanic Garden, are 
@@ -434,7 +427,7 @@ ui<-fluidPage(
                             on the layers can be found in the 'tab summary' and 'data' tab under 'Summary'."),
                           br(),
                            selectInput("islandvar", h4(strong("Choose an Island Variable")), c("DEM", "Vegetation")),
-                           p(em("Data Source: The National Park Service."))
+                           p(em("Data Source: The National Park Service Island Managers."))
                            ),
                          column(4,leafletOutput("islandmap", width=1000, height=600))
                          ),
@@ -559,8 +552,9 @@ ui<-fluidPage(
                          sidebarPanel(width=3,
                                 h3(strong("Historic")),
                                 p("Species distribution model (SDM) results for the island oak in the historic time
-                                  period, with or without fog included in the analyses. We highly recommend reading the tab 
-                                  summary and methodology tab under summary."),
+                                  period, with or without fog included in the analyses. Suitability scores (0-1) represent
+                                  the probability of island oak presence in the area as a factor of suitable climate habitat.
+                                  We highly recommend reading the tab summary and methodology tab under summary."),
                                 br(),
                                 selectInput("histsdmcolor", h4(strong("Choose a Color Palette")), 
                                             c("Spectral","Inverse Spectral" ,"Viridis", "Magma")),
@@ -584,8 +578,11 @@ ui<-fluidPage(
                          sidebarPanel(width=3,
                                 h3(strong("Projected")),
                                 p("Species distribution model (SDM) results for the island oak across projected fog scenarios,
-                                  climate projections, and time periods. The no fog scenario corresponds with the historic no fog option,
-                                  and the constant fog, fog increase, fog decrease, and fog elevation threshold scenarios correspond with the historic fog option. We highly recommend reading 
+                                  climate projections, and time periods. Suitability scores (0-1) represent
+                                  the probability of island oak presence in the area as a factor of suitable climate habitat.
+                                  The no fog scenario corresponds with the historic no fog option,
+                                  and the constant fog, fog increase, fog decrease, and fog elevation threshold scenarios
+                                  correspond with the historic fog option. We highly recommend reading 
                                   the tab summary and methodology tab under summary."),
                                 br(),
                                 selectInput("sdmcolor", h4(strong("Choose a Color Palette")), 
@@ -629,7 +626,7 @@ server <- function(input, output, session) {
   ###############################################
   
   #Summary page links 
-  url1 <- a("Oakology Wesbite", href="https://oakology19.wixsite.com/oakology/island-oaks")
+  url1 <- a("Oakology Website", href="https://oakology19.wixsite.com/oakology/island-oaks")
   output$tab1 <- renderUI({
     tagList("", url1)
   })
